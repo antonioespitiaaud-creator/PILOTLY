@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pilotly — Stop Losing Jobs to Missed Calls</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+--bg:#030306;--bg2:#07070d;--card:rgba(14,14,22,.7);--glass:rgba(18,18,28,.45);
+--border:rgba(255,255,255,.06);--border2:rgba(255,255,255,.1);
+--text:#e4e4f0;--muted:#6e6e8a;--dim:#44445a;--white:#fff;
+--purple:#a78bfa;--blue:#60a5fa;--cyan:#34d399;--red:#f87171;--amber:#fbbf24;
+--grad:linear-gradient(135deg,#a78bfa 0%,#60a5fa 50%,#34d399 100%);
+--grad2:linear-gradient(135deg,#34d399,#60a5fa,#a78bfa);
+}
+html{scroll-behavior:smooth}
+body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;-webkit-font-smoothing:antialiased}
+a{text-decoration:none;color:inherit}
+
+/* Animated grid background */
+.grid-bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.grid-bg::before{content:'';position:absolute;inset:-50%;width:200%;height:200%;background-image:linear-gradient(rgba(167,139,250,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(167,139,250,.03) 1px,transparent 1px);background-size:60px 60px;animation:gridMove 20s linear infinite}
+@keyframes gridMove{to{transform:translate(60px,60px)}}
+.grid-bg::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,transparent 0%,var(--bg) 70%)}
+
+.ctn{max-width:1120px;margin:0 auto;padding:0 28px;position:relative;z-index:2}
+.gt{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:10px;padding:15px 34px;border-radius:14px;font-family:'Sora',sans-serif;font-weight:600;font-size:15px;border:none;cursor:pointer;transition:all .4s cubic-bezier(.16,1,.3,1);letter-spacing:-.2px;position:relative;overflow:hidden}
+.btn-p{background:var(--grad);color:var(--bg)}
+.btn-p::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.25),transparent);opacity:0;transition:opacity .3s}
+.btn-p:hover::before{opacity:1}
+.btn-p:hover{transform:translateY(-2px);box-shadow:0 8px 40px rgba(167,139,250,.3),0 2px 12px rgba(52,211,153,.2)}
+.btn-o{background:var(--glass);color:var(--white);border:1px solid var(--border2);backdrop-filter:blur(12px)}
+.btn-o:hover{border-color:var(--purple);background:rgba(167,139,250,.08);transform:translateY(-2px)}
+
+.stag{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--cyan);margin-bottom:20px;display:flex;align-items:center;gap:12px}
+.stag::before{content:'';width:20px;height:1px;background:var(--cyan)}
+.sh{font-size:clamp(32px,5vw,50px);font-weight:800;line-height:1.1;letter-spacing:-1.5px;margin-bottom:18px}
+.ss{font-size:17px;color:var(--muted);line-height:1.7;max-width:560px}
+.sec{padding:100px 0;position:relative}
+
+/* Glass card base */
+.g-card{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:20px;transition:all .4s cubic-bezier(.16,1,.3,1)}
+.g-card:hover{border-color:var(--border2);box-shadow:0 20px 60px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.05)}
+
+/* Nav */
+nav{position:fixed;top:0;width:100%;z-index:100;padding:16px 0;transition:all .4s}
+nav.s{backdrop-filter:blur(20px);background:rgba(3,3,6,.8);border-bottom:1px solid var(--border);padding:10px 0}
+.nav-i{display:flex;align-items:center;justify-content:space-between}
+.logo{font-size:20px;font-weight:800;letter-spacing:-.5px}
+.nav-l{display:flex;gap:24px;align-items:center}
+.nav-l a{font-size:13px;font-weight:500;color:var(--muted);transition:.25s}
+.nav-l a:hover{color:var(--white)}
+.nav-c{font-size:12px!important;color:var(--bg)!important;padding:9px 20px;border-radius:10px;background:var(--grad);font-weight:600!important}
+
+/* Mobile sticky */
+.sticky-cta{display:none;position:fixed;bottom:0;left:0;right:0;z-index:99;padding:12px 16px;background:rgba(3,3,6,.95);backdrop-filter:blur(20px);border-top:1px solid var(--border)}
+.sticky-cta a{display:flex;align-items:center;justify-content:center;gap:8px;padding:13px;border-radius:14px;background:var(--grad);color:var(--bg);font-weight:700;font-size:14px;width:100%}
+
+/* ===== HERO ===== */
+.hero{min-height:100vh;display:flex;align-items:center;padding:140px 0 80px;position:relative}
+.h-orb{position:absolute;border-radius:50%;pointer-events:none;animation:orbFloat 8s ease-in-out infinite}
+.h-orb1{width:500px;height:500px;top:-150px;right:-100px;background:radial-gradient(circle,rgba(167,139,250,.15),transparent 70%);animation-duration:10s}
+.h-orb2{width:400px;height:400px;bottom:-100px;left:-100px;background:radial-gradient(circle,rgba(52,211,153,.12),transparent 70%);animation-delay:-4s}
+.h-orb3{width:600px;height:600px;top:30%;left:40%;background:radial-gradient(circle,rgba(96,165,250,.08),transparent 70%);animation-delay:-2s;animation-duration:12s}
+@keyframes orbFloat{0%,100%{transform:translate(0,0)}50%{transform:translate(30px,-20px)}}
+.hero-c{position:relative;z-index:2;max-width:700px}
+.h-hook{display:inline-flex;align-items:center;gap:10px;padding:10px 20px;border-radius:14px;background:rgba(248,113,113,.05);border:1px solid rgba(248,113,113,.12);margin-bottom:36px}
+.h-hook-dot{width:7px;height:7px;border-radius:50%;background:var(--red);animation:blink 1.5s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.15}}
+.h-hook-stat{font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:700;background:linear-gradient(135deg,var(--red),var(--amber));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.h-hook-text{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--red);letter-spacing:1px}
+.hero h1{font-size:clamp(38px,6.5vw,68px);font-weight:800;line-height:1.05;letter-spacing:-2px;margin-bottom:24px}
+.h-sub{font-size:18px;color:var(--muted);line-height:1.7;max-width:520px;margin-bottom:36px}
+.h-btns{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:40px}
+.h-note{font-size:13px;color:var(--dim);padding-top:20px;border-top:1px solid var(--border)}
+
+/* ===== PROBLEM ===== */
+.prob{background:linear-gradient(180deg,var(--bg2),var(--bg))}
+.prob-story{max-width:680px;margin:48px auto 0;position:relative}
+.prob-story p{font-size:17px;line-height:1.85;color:var(--text);margin-bottom:24px;position:relative;padding-left:20px;border-left:2px solid var(--border)}
+.prob-story .hl{color:var(--red);font-weight:600}
+.prob-story .money{color:var(--amber);font-weight:700;font-family:'JetBrains Mono',monospace}
+.prob-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:48px}
+.prob-card{padding:24px;border-radius:16px;position:relative;overflow:hidden}
+.prob-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--red),transparent);border-radius:2px}
+.prob-card h4{font-size:15px;font-weight:700;margin-bottom:6px;padding-left:14px}
+.prob-card p{font-size:13px;color:var(--muted);line-height:1.55;padding-left:14px}
+.prob-cta{margin-top:48px;text-align:center;padding:36px;border-radius:20px;border:1px solid rgba(248,113,113,.1);background:rgba(248,113,113,.03)}
+.prob-cta p{font-size:20px;font-weight:700;line-height:1.4}
+
+/* ===== OPPORTUNITY ===== */
+.opp-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:48px}
+.opp-col{padding:32px;border-radius:20px}
+.opp-col.old{background:rgba(248,113,113,.03);border:1px solid rgba(248,113,113,.08)}
+.opp-col.new{background:rgba(52,211,153,.03);border:1px solid rgba(52,211,153,.08)}
+.opp-tag{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;margin-bottom:20px;display:inline-block;padding:5px 14px;border-radius:8px;font-weight:500}
+.opp-tag.red{background:rgba(248,113,113,.08);color:var(--red)}
+.opp-tag.green{background:rgba(52,211,153,.08);color:var(--cyan)}
+.opp-list{list-style:none}
+.opp-list li{padding:10px 0;font-size:14px;display:flex;align-items:flex-start;gap:10px;border-bottom:1px solid rgba(255,255,255,.04);line-height:1.55}
+.opp-list li:last-child{border:none}
+.opp-list .x{color:var(--red);flex-shrink:0;margin-top:2px;font-size:13px}
+.opp-list .v{color:var(--cyan);flex-shrink:0;margin-top:2px;font-size:13px}
+
+/* ===== FOUNDER ===== */
+.founder{background:linear-gradient(180deg,var(--bg),var(--bg2))}
+.founder-grid{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center;margin-top:48px}
+.founder-video{border-radius:24px;aspect-ratio:16/9;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;position:relative;overflow:hidden;background:linear-gradient(135deg,rgba(167,139,250,.06),rgba(52,211,153,.04))}
+.founder-video::before{content:'';position:absolute;inset:0;border-radius:24px;padding:1px;background:var(--grad);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+.fv-play{width:68px;height:68px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer;box-shadow:0 0 50px rgba(167,139,250,.25);transition:.4s}
+.fv-play:hover{transform:scale(1.12);box-shadow:0 0 80px rgba(167,139,250,.4)}
+.fv-label{font-size:13px;color:var(--muted)}
+.founder-text h3{font-size:22px;font-weight:700;margin-bottom:16px;line-height:1.3}
+.founder-text p{font-size:15px;color:var(--muted);line-height:1.7;margin-bottom:14px}
+.founder-sig{display:flex;align-items:center;gap:14px;margin-top:28px;padding-top:20px;border-top:1px solid var(--border)}
+.founder-avatar{width:48px;height:48px;border-radius:14px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;color:var(--bg)}
+.founder-name{font-size:15px;font-weight:700}
+.founder-role{font-size:12px;color:var(--muted)}
+
+/* ===== STEPS ===== */
+.steps-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:48px}
+.step-card{padding:28px 20px;border-radius:18px;text-align:center;position:relative}
+.step-card::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:40px;height:2px;background:var(--grad);border-radius:2px}
+.step-num{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--purple);letter-spacing:3px;margin-bottom:16px;margin-top:8px}
+.step-icon{font-size:28px;margin-bottom:14px}
+.step-card h4{font-size:15px;font-weight:700;margin-bottom:8px}
+.step-card p{font-size:12px;color:var(--muted);line-height:1.55}
+
+/* ===== SERVICES ===== */
+.svc{background:linear-gradient(180deg,var(--bg2),var(--bg))}
+.svc-block{margin-top:48px;display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}
+.svc-block+.svc-block{margin-top:80px}
+.svc-list{list-style:none}
+.svc-list li{display:flex;align-items:flex-start;gap:12px;padding:12px 0;font-size:14px;line-height:1.6;border-bottom:1px solid var(--border)}
+.svc-list li:last-child{border:none}
+.svc-ck{color:var(--cyan);font-size:16px;flex-shrink:0;margin-top:2px}
+.svc-impact{margin-top:24px;padding:20px;background:rgba(52,211,153,.04);border:1px solid rgba(52,211,153,.08);border-radius:14px}
+.svc-impact p{font-size:14px;line-height:1.6}.svc-impact strong{color:var(--cyan)}
+
+/* Cost reframe */
+.cost-box{padding:40px 32px;border-radius:24px;text-align:center;position:relative;overflow:hidden;background:linear-gradient(135deg,rgba(248,113,113,.04),rgba(167,139,250,.04))}
+.cost-box::before{content:'';position:absolute;inset:0;border-radius:24px;padding:1px;background:linear-gradient(135deg,rgba(248,113,113,.2),rgba(167,139,250,.2));-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+.cost-big{font-size:56px;font-weight:800;letter-spacing:-3px;background:linear-gradient(180deg,var(--red),#991b1b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px;font-family:'JetBrains Mono',monospace}
+.cost-label{font-size:16px;color:var(--muted);margin-bottom:28px}
+.cost-vs{font-size:13px;color:var(--dim);margin-bottom:6px}
+.cost-pilotly{font-size:32px;font-weight:800;margin-bottom:4px}
+.cost-sub{font-size:14px;color:var(--muted)}
+
+/* AI chat preview */
+.ai-preview{border-radius:24px;padding:28px;position:relative;overflow:hidden;background:linear-gradient(135deg,rgba(167,139,250,.04),rgba(52,211,153,.02))}
+.ai-preview::before{content:'';position:absolute;inset:0;border-radius:24px;padding:1px;background:var(--grad);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+.ai-hd{display:flex;align-items:center;gap:12px;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid var(--border)}
+.ai-dot{width:34px;height:34px;border-radius:10px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:14px}
+.ai-name{font-weight:700;font-size:13px}.ai-status{font-size:10px;color:var(--cyan);display:flex;align-items:center;gap:4px}
+.ai-status .on{width:5px;height:5px;border-radius:50%;background:var(--cyan);animation:blink 2s infinite}
+.ai-msgs{display:flex;flex-direction:column;gap:10px}
+.ai-m{padding:12px 16px;border-radius:14px;font-size:12px;max-width:88%;line-height:1.55}
+.ai-m-b{background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.08);align-self:flex-start}
+.ai-m-u{background:rgba(52,211,153,.05);border:1px solid rgba(52,211,153,.08);align-self:flex-end}
+
+/* ===== PROOF ===== */
+.proof{background:linear-gradient(180deg,var(--bg),var(--bg2))}
+.proof-card{margin-top:48px;border-radius:24px;overflow:hidden;max-width:680px;margin-left:auto;margin-right:auto}
+.proof-hd{padding:20px 28px;display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--border);background:rgba(52,211,153,.03)}
+.proof-logo{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--cyan),#059669);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:var(--bg)}
+.proof-hd-text h4{font-size:15px;font-weight:700}.proof-hd-text p{font-size:11px;color:var(--muted)}
+.proof-body{padding:28px}
+.proof-tag{display:inline-block;padding:4px 12px;border-radius:8px;font-size:10px;font-family:'JetBrains Mono',monospace;letter-spacing:1px;background:rgba(251,191,36,.08);color:var(--amber);margin-bottom:14px}
+.proof-body>p{font-size:14px;color:var(--muted);line-height:1.65;margin-bottom:14px}
+.proof-link{font-size:13px;color:var(--purple);font-weight:600;display:inline-flex;align-items:center;gap:6px}.proof-link:hover{text-decoration:underline}
+.proof-note{text-align:center;margin-top:24px;font-size:12px;color:var(--dim);font-style:italic}
+
+/* ===== PRICING ===== */
+.pr-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:48px}
+.pr-card{border-radius:24px;padding:36px 24px;position:relative;transition:all .4s cubic-bezier(.16,1,.3,1)}
+.pr-card:hover{transform:translateY(-6px)}
+.pr-card.ft{background:linear-gradient(180deg,rgba(96,165,250,.06),var(--glass))!important;border-color:rgba(96,165,250,.15)!important}
+.pr-card.ft::before{content:'MOST POPULAR';position:absolute;top:-12px;left:50%;transform:translateX(-50%);padding:5px 16px;border-radius:8px;background:var(--grad);color:var(--bg);font-size:9px;font-weight:700;letter-spacing:2px;font-family:'JetBrains Mono',monospace}
+.pr-tier{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
+.pr-amt{font-size:48px;font-weight:800;letter-spacing:-2px;margin-bottom:2px}.pr-amt span{font-size:16px;font-weight:400;color:var(--muted)}
+.pr-per{font-size:12px;color:var(--muted);margin-bottom:24px}
+.pr-div{height:1px;background:var(--border);margin-bottom:20px}
+.pr-feat{list-style:none;margin-bottom:28px}
+.pr-feat li{padding:7px 0;font-size:13px;display:flex;align-items:flex-start;gap:8px;border-bottom:1px solid rgba(255,255,255,.03);line-height:1.5}
+.pr-feat li:last-child{border:none}
+.pr-ck{color:var(--cyan);font-size:14px;flex-shrink:0;margin-top:2px}
+.pr-card .btn{width:100%;justify-content:center;font-size:14px}
+.pr-ai{margin-top:24px;padding:24px 28px;border-radius:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}
+.pr-ai-left{display:flex;align-items:center;gap:14px}
+.pr-ai-icon{width:44px;height:44px;border-radius:12px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:18px}
+.pr-ai-text h4{font-size:15px;font-weight:700}.pr-ai-text p{font-size:12px;color:var(--muted)}
+.pr-ai-price{font-size:26px;font-weight:800}.pr-ai-price span{font-size:13px;color:var(--muted);font-weight:400}
+
+/* ===== FAQ ===== */
+.faq-list{margin-top:48px;max-width:720px;margin-left:auto;margin-right:auto}
+.faq-item{border-bottom:1px solid var(--border)}
+.faq-q{padding:22px 0;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-size:16px;font-weight:600;transition:.25s;user-select:none}
+.faq-q:hover{color:var(--cyan)}
+.faq-arrow{font-size:18px;color:var(--muted);transition:transform .3s;flex-shrink:0;margin-left:16px}
+.faq-item.open .faq-arrow{transform:rotate(45deg);color:var(--cyan)}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .4s ease,padding .3s}
+.faq-item.open .faq-a{max-height:300px;padding-bottom:22px}
+.faq-a p{font-size:14px;color:var(--muted);line-height:1.7}
+
+/* ===== CLOSE ===== */
+.close{text-align:center;background:linear-gradient(180deg,var(--bg2),var(--bg));position:relative;overflow:hidden}
+.close-orb{position:absolute;width:500px;height:500px;border-radius:50%;pointer-events:none;top:50%;left:50%;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(167,139,250,.1),transparent 70%);animation:orbFloat 10s ease-in-out infinite}
+.close-c{position:relative;z-index:2}
+.close h2{font-size:clamp(32px,5vw,52px);font-weight:800;letter-spacing:-1.5px;line-height:1.1;margin-bottom:18px}
+.close .ss{margin:0 auto 28px;text-align:center}
+.close-urg{display:inline-flex;align-items:center;gap:8px;padding:8px 18px;border-radius:10px;background:rgba(251,191,36,.05);border:1px solid rgba(251,191,36,.12);font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--amber);margin-bottom:32px;letter-spacing:1.5px}
+.close-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.close-offer{margin-top:40px;padding:28px 32px;border-radius:20px;display:inline-flex;flex-direction:column;align-items:center;gap:8px}
+.close-offer h4{font-size:17px;font-weight:700}.close-offer p{font-size:13px;color:var(--muted);max-width:400px;line-height:1.55}
+.close-note{margin-top:18px;font-size:12px;color:var(--dim)}
+
+footer{padding:48px 0;border-top:1px solid var(--border);text-align:center}footer p{font-size:11px;color:var(--dim)}
+
+/* Animations */
+.fu{opacity:0;transform:translateY(28px);transition:all .8s cubic-bezier(.16,1,.3,1)}.fu.v{opacity:1;transform:translateY(0)}
+
+/* Responsive */
+@media(max-width:900px){
+.nav-l a:not(.nav-c){display:none}
+.prob-grid,.opp-grid,.founder-grid,.svc-block{grid-template-columns:1fr}
+.steps-grid{grid-template-columns:1fr 1fr}
+.pr-grid{grid-template-columns:1fr;max-width:380px;margin-left:auto;margin-right:auto}
+.sticky-cta{display:block}body{padding-bottom:72px}
+}
+@media(max-width:600px){
+.hero h1{letter-spacing:-1px}
+.h-btns,.close-btns{flex-direction:column}.btn{width:100%;justify-content:center}
+.steps-grid{grid-template-columns:1fr}
+.pr-ai{flex-direction:column;text-align:center}.pr-ai-left{flex-direction:column;align-items:center}
+}
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+
+<nav id="nav"><div class="ctn nav-i"><div class="logo">Pilotly</div><div class="nav-l"><a href="#problem">Problem</a><a href="#how">How It Works</a><a href="#pricing">Pricing</a><a href="#close" class="nav-c">Free Growth Audit</a></div></div></nav>
+<div class="sticky-cta"><a href="#close">Free 15-Min Growth Audit &#8599;</a></div>
+
+<!-- HERO -->
+<section class="hero">
+<div class="h-orb h-orb1"></div><div class="h-orb h-orb2"></div><div class="h-orb h-orb3"></div>
+<div class="ctn"><div class="hero-c">
+  <div class="h-hook g-card">
+    <div class="h-hook-dot"></div>
+    <div><div class="h-hook-stat">78%</div><div class="h-hook-text">of customers buy from the first responder</div></div>
+  </div>
+  <h1>How fast does<br><span class="gt">your business</span> respond?</h1>
+  <p class="h-sub">If the answer is "when I get a chance" — you're losing thousands every month. Pilotly builds automated systems that respond in under 60 seconds, follow up until they book, and work while you're on the tools.</p>
+  <div class="h-btns">
+    <a href="#close" class="btn btn-p">Find Out What You're Losing &#8599;</a>
+    <a href="#how" class="btn btn-o">See How It Works</a>
+  </div>
+  <p class="h-note">No contracts. No tech skills. We build it, you own it.</p>
+</div></div>
+</section>
+
+<!-- PROBLEM -->
+<section class="sec prob" id="problem">
+<div class="ctn">
+  <div class="fu"><div class="stag">The real problem</div><div class="sh">You don't need more leads.<br>You need to stop <span class="gt">losing them.</span></div></div>
+  <div class="prob-story fu">
+    <p>It's Tuesday morning. You're under a house rewiring a switchboard. Your phone buzzes. You can't answer — your hands are full.</p>
+    <p>An hour later you check. <span class="hl">Missed call. No voicemail.</span> You call back. No answer. They already booked someone else.</p>
+    <p>That was a <span class="money">$2,800</span> job. Gone. Not because you're bad at what you do — because you couldn't get to the phone.</p>
+    <p>Multiply that by every missed call, every unanswered Facebook message, every Sunday night enquiry you didn't see until Monday afternoon. How much is that? <span class="money">$5,000 a month? $10,000?</span></p>
+  </div>
+  <div class="prob-grid fu">
+    <div class="prob-card g-card"><h4>No website — or one that just sits there</h4><p>Customers Google you, find a page from 2019, and call your competitor.</p></div>
+    <div class="prob-card g-card"><h4>Leads fall through the cracks</h4><p>Wix, Calendly, Excel, WhatsApp, your memory. Something always gets missed.</p></div>
+    <div class="prob-card g-card"><h4>Slow follow-up = no follow-up</h4><p>Enquiry Monday. Reply Thursday. They forgot your name.</p></div>
+    <div class="prob-card g-card"><h4>Competitors are getting faster</h4><p>The tradie down the road has automated responses. Your leads walk to them.</p></div>
+  </div>
+  <div class="prob-cta fu"><p>The problem isn't your skill. It isn't your price.<br>It's the gap between when a lead reaches out<br>and when <span class="gt">someone responds.</span></p></div>
+</div>
+</section>
+
+<!-- OPPORTUNITY -->
+<section class="sec">
+<div class="ctn">
+  <div class="fu" style="text-align:center"><div class="stag" style="justify-content:center">A different approach</div><div class="sh">Your Wix site and spreadsheets<br>aren't a <span class="gt">growth system.</span></div></div>
+  <div class="opp-grid fu">
+    <div class="opp-col old"><div class="opp-tag red">WHAT YOU'RE DOING NOW</div><ul class="opp-list">
+      <li><span class="x">&#10007;</span> Wix or GoDaddy site nobody finds</li>
+      <li><span class="x">&#10007;</span> Phone calls you miss on the job</li>
+      <li><span class="x">&#10007;</span> Leads in your head or a spreadsheet</li>
+      <li><span class="x">&#10007;</span> Follow-up when you remember</li>
+      <li><span class="x">&#10007;</span> Paying for each tool separately</li>
+      <li><span class="x">&#10007;</span> Can't change your site without a dev</li>
+    </ul></div>
+    <div class="opp-col new"><div class="opp-tag green">WHAT A SYSTEM DOES</div><ul class="opp-list">
+      <li><span class="v">&#10003;</span> Website that captures leads automatically</li>
+      <li><span class="v">&#10003;</span> Missed call auto text-back in seconds</li>
+      <li><span class="v">&#10003;</span> Every lead tracked and followed up in CRM</li>
+      <li><span class="v">&#10003;</span> Automated sequences until they book</li>
+      <li><span class="v">&#10003;</span> One platform replaces everything</li>
+      <li><span class="v">&#10003;</span> Update anything yourself, anytime</li>
+    </ul></div>
+  </div>
+</div>
+</section>
+
+<!-- FOUNDER -->
+<section class="sec founder">
+<div class="ctn">
+  <div class="fu"><div class="stag">Meet the founder</div><div class="sh">Real person. <span class="gt">Real help.</span></div></div>
+  <div class="founder-grid fu">
+    <div class="founder-video"><div class="fv-play">&#9654;</div><div class="fv-label">60 seconds — why I built Pilotly</div></div>
+    <div class="founder-text">
+      <h3>I build systems so you can focus on the work you're actually good at.</h3>
+      <p>You didn't start your business to chase leads and update spreadsheets. You started it because you're great at what you do.</p>
+      <p>Pilotly handles the rest — capturing leads, following up, turning enquiries into booked jobs. Automatically. I set it up. I teach you how it works. I give you the keys.</p>
+      <div class="founder-sig"><div class="founder-avatar">SE</div><div><div class="founder-name">Sergio Espitia</div><div class="founder-role">Founder, Pilotly &middot; Sydney</div></div></div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="sec" id="how">
+<div class="ctn">
+  <div class="fu" style="text-align:center"><div class="stag" style="justify-content:center">How it works</div><div class="sh">Live in days. <span class="gt">Not weeks.</span></div></div>
+  <div class="steps-grid fu">
+    <div class="step-card g-card"><div class="step-num">01</div><div class="step-icon">&#128222;</div><h4>Quick call</h4><p>15 minutes. Tell me about your business and goals.</p></div>
+    <div class="step-card g-card"><div class="step-num">02</div><div class="step-icon">&#9881;</div><h4>I build it</h4><p>Website, CRM, automations — done for you in days.</p></div>
+    <div class="step-card g-card"><div class="step-num">03</div><div class="step-icon">&#9889;</div><h4>You go live</h4><p>System captures and responds to leads 24/7.</p></div>
+    <div class="step-card g-card"><div class="step-num">04</div><div class="step-icon">&#128273;</div><h4>You own it</h4><p>Full access. Make changes anytime. I'm one message away.</p></div>
+  </div>
+</div>
+</section>
+
+<!-- SERVICES -->
+<section class="sec svc">
+<div class="ctn">
+  <div class="fu"><div class="stag">What you get</div><div class="sh">Two systems. <span class="gt">One goal.</span><br>More booked jobs.</div></div>
+  <div class="svc-block fu">
+    <div>
+      <h3 style="font-size:22px;font-weight:800;margin-bottom:8px">Pilotly Web</h3>
+      <p style="font-size:14px;color:var(--muted);margin-bottom:24px;line-height:1.6">Website, funnels, and booking — built to convert visitors into customers.</p>
+      <ul class="svc-list">
+        <li><span class="svc-ck">&#10003;</span> Mobile-optimised website that converts</li>
+        <li><span class="svc-ck">&#10003;</span> Online booking — customers schedule without calling</li>
+        <li><span class="svc-ck">&#10003;</span> CRM that tracks every lead and conversation</li>
+        <li><span class="svc-ck">&#10003;</span> Missed call text-back — instant SMS if you can't answer</li>
+        <li><span class="svc-ck">&#10003;</span> Email and SMS automation that follows up for you</li>
+      </ul>
+    </div>
+    <div>
+      <div class="cost-box">
+        <div class="cost-big">$5,000+</div>
+        <div class="cost-label">What missed leads cost you monthly</div>
+        <div class="cost-vs">vs.</div>
+        <div class="cost-pilotly gt">$149/mo</div>
+        <div class="cost-sub">to stop losing them</div>
+      </div>
+    </div>
+  </div>
+  <div class="svc-block fu">
+    <div class="ai-preview" style="order:0">
+      <div class="ai-hd"><div class="ai-dot">&#10023;</div><div><div class="ai-name">Pilotly AI</div><div class="ai-status"><span class="on"></span> Online now</div></div></div>
+      <div class="ai-msgs">
+        <div class="ai-m ai-m-b">Hey! I'm the AI assistant for Smith Electrical. What do you need done?</div>
+        <div class="ai-m ai-m-u">Need downlights installed. 8 LED replacements. Northern Beaches. When can you come?</div>
+        <div class="ai-m ai-m-b">LED replacement for 8 lights — we've got Thursday 9am or Friday 2pm. Which works? I'll lock it in.</div>
+      </div>
+      <p style="text-align:center;margin-top:16px;font-size:10px;color:var(--dim);font-family:'JetBrains Mono',monospace">11:47pm on a Sunday. No human involved.</p>
+    </div>
+    <div style="order:1">
+      <h3 style="font-size:22px;font-weight:800;margin-bottom:8px">Pilotly AI <span style="font-size:13px;color:var(--muted);font-weight:400">+$97/mo</span></h3>
+      <p style="font-size:14px;color:var(--muted);margin-bottom:24px;line-height:1.6">Your 24/7 digital employee that answers, qualifies, and books — while you sleep.</p>
+      <ul class="svc-list">
+        <li><span class="svc-ck">&#10003;</span> AI webchat — answers questions and captures details instantly</li>
+        <li><span class="svc-ck">&#10003;</span> AI SMS — auto-replies with smart, human-sounding messages</li>
+        <li><span class="svc-ck">&#10003;</span> AI booking — checks availability and schedules automatically</li>
+        <li><span class="svc-ck">&#10003;</span> Multi-channel — website, SMS, Messenger at the same time</li>
+      </ul>
+      <div class="svc-impact"><p>Customer messages <strong>9pm Sunday</strong>. Pilotly AI replies, qualifies, books Monday morning. <strong>That job would've gone to your competitor.</strong></p></div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- PROOF -->
+<section class="sec proof">
+<div class="ctn">
+  <div class="fu" style="text-align:center"><div class="stag" style="justify-content:center">Currently building</div><div class="sh">Real systems. <span class="gt">Real businesses.</span></div></div>
+  <div class="proof-card g-card fu">
+    <div class="proof-hd"><div class="proof-logo">GQ</div><div class="proof-hd-text"><h4>Global Quality Foods</h4><p>School Canteen Supplies &middot; Riverwood, Sydney</p></div></div>
+    <div class="proof-body">
+      <div class="proof-tag">IN DEVELOPMENT</div>
+      <p>GQF supplies food to school canteens across NSW. We're building a digital ordering system replacing phone calls and handwritten sheets with an automated workflow.</p>
+      <a href="https://gqf.com.au" target="_blank" class="proof-link">Visit gqf.com.au &#8599;</a>
+    </div>
+  </div>
+  <p class="proof-note fu">Pilotly is new. Earning our reputation one system at a time.</p>
+</div>
+</section>
+
+<!-- PRICING -->
+<section class="sec" id="pricing">
+<div class="ctn">
+  <div class="fu" style="text-align:center"><div class="stag" style="justify-content:center">Pricing</div><div class="sh">One missed job pays for <span class="gt">months of Pilotly.</span></div><div class="ss" style="margin:0 auto">No contracts. No hidden fees. Setup included. Cancel anytime.</div></div>
+  <div class="pr-grid fu">
+    <div class="pr-card g-card"><div class="pr-tier">Starter</div><div class="pr-amt">$149 <span>/mo</span></div><div class="pr-per">AUD &middot; Get online &amp; capture leads</div><div class="pr-div"></div><ul class="pr-feat"><li><span class="pr-ck">&#10003;</span> Professional website</li><li><span class="pr-ck">&#10003;</span> CRM with pipeline</li><li><span class="pr-ck">&#10003;</span> Online booking</li><li><span class="pr-ck">&#10003;</span> Missed call text-back</li><li><span class="pr-ck">&#10003;</span> Done-for-you setup</li><li><span class="pr-ck">&#10003;</span> Email support</li></ul><a href="#close" class="btn btn-o">Get Started</a></div>
+    <div class="pr-card g-card ft"><div class="pr-tier">Growth</div><div class="pr-amt gt">$297 <span>/mo</span></div><div class="pr-per">AUD &middot; Automate &amp; scale</div><div class="pr-div"></div><ul class="pr-feat"><li><span class="pr-ck">&#10003;</span> Everything in Starter</li><li><span class="pr-ck">&#10003;</span> Unlimited funnels</li><li><span class="pr-ck">&#10003;</span> Email &amp; SMS automation</li><li><span class="pr-ck">&#10003;</span> Monthly report</li><li><span class="pr-ck">&#10003;</span> Priority chat support</li></ul><a href="#close" class="btn btn-p">Get Started &#8599;</a></div>
+    <div class="pr-card g-card"><div class="pr-tier">Scale</div><div class="pr-amt">$497 <span>/mo</span></div><div class="pr-per">AUD &middot; Full growth engine</div><div class="pr-div"></div><ul class="pr-feat"><li><span class="pr-ck">&#10003;</span> Everything in Growth</li><li><span class="pr-ck">&#10003;</span> Custom automations</li><li><span class="pr-ck">&#10003;</span> 1:1 onboarding (60 min)</li><li><span class="pr-ck">&#10003;</span> Monthly strategy call</li><li><span class="pr-ck">&#10003;</span> WhatsApp priority support</li></ul><a href="#close" class="btn btn-o">Get Started</a></div>
+  </div>
+  <div class="pr-ai g-card fu"><div class="pr-ai-left"><div class="pr-ai-icon">&#10023;</div><div class="pr-ai-text"><h4>Add Pilotly AI to any plan</h4><p>AI chatbot, AI SMS, AI booking — your 24/7 digital employee</p></div></div><div class="pr-ai-price gt">+$97 <span>/mo</span></div></div>
+</div>
+</section>
+
+<!-- FAQ -->
+<section class="sec">
+<div class="ctn">
+  <div class="fu" style="text-align:center"><div class="stag" style="justify-content:center">Questions</div><div class="sh">Straight answers. <span class="gt">No BS.</span></div></div>
+  <div class="faq-list fu">
+    <div class="faq-item"><div class="faq-q">I'm not tech-savvy. Will I be able to use this?<span class="faq-arrow">+</span></div><div class="faq-a"><p>Yes. I build it all for you. If you can send a text, you can use Pilotly. And I'm always available if you get stuck.</p></div></div>
+    <div class="faq-item"><div class="faq-q">How quickly can I be set up?<span class="faq-arrow">+</span></div><div class="faq-a"><p>3-5 business days. Quick call, I build it, customise for your business, launch. No waiting weeks.</p></div></div>
+    <div class="faq-item"><div class="faq-q">Am I locked into a contract?<span class="faq-arrow">+</span></div><div class="faq-a"><p>No. Month-to-month. Cancel anytime. If it works, you'll want to stay. No handcuffs.</p></div></div>
+    <div class="faq-item"><div class="faq-q">Can I make changes myself?<span class="faq-arrow">+</span></div><div class="faq-a"><p>Full access. Change text, photos, automations — no extra charge, no developer needed. It's yours.</p></div></div>
+    <div class="faq-item"><div class="faq-q">I already have a Wix site. Why switch?<span class="faq-arrow">+</span></div><div class="faq-a"><p>Wix gives you a page. Pilotly gives you a system — website + CRM + booking + auto follow-up + SMS. Your Wix site doesn't text back when you miss a call.</p></div></div>
+    <div class="faq-item"><div class="faq-q">What if I don't have many leads yet?<span class="faq-arrow">+</span></div><div class="faq-a"><p>Then you can't afford to lose any. Starter makes sure every single lead gets captured and responded to.</p></div></div>
+    <div class="faq-item"><div class="faq-q">What's in the free Growth Audit?<span class="faq-arrow">+</span></div><div class="faq-a"><p>I review your online presence and show you where leads are falling through the cracks. 15 minutes, no cost. Insights are yours to keep even if you don't sign up.</p></div></div>
+  </div>
+</div>
+</section>
+
+<!-- CLOSE -->
+<section class="sec close" id="close">
+<div class="close-orb"></div>
+<div class="ctn close-c"><div class="fu">
+  <div class="close-urg">&#9888; I only take on 3 new clients per month</div>
+  <h2>One missed call today<br>could be a <span class="gt">$3,000 job</span><br>you'll never know about.</h2>
+  <div class="ss">Book a free 15-minute Growth Audit. I'll show you exactly where your business is leaking leads — and what it's costing you.</div>
+  <div class="close-btns">
+    <a href="#" class="btn btn-p">Book Your Free Growth Audit &#8599;</a>
+    <a href="#pricing" class="btn btn-o">See Pricing First</a>
+  </div>
+  <div class="close-offer g-card"><h4>&#127873; What you walk away with:</h4><p>Full review of your online presence, where you're losing leads, and a custom action plan. Yours to keep — even if Pilotly isn't for you.</p></div>
+  <p class="close-note">No contracts. No obligation. Just a straight conversation.</p>
+</div></div>
+</section>
+
+<footer><div class="ctn"><div class="logo" style="margin-bottom:12px;display:inline-block">Pilotly</div><p>&copy; 2026 Pilotly. All rights reserved. &middot; Leads on Autopilot &middot; Sydney, Australia</p></div></footer>
+
+<script>
+const nav=document.getElementById('nav');
+window.addEventListener('scroll',()=>nav.classList.toggle('s',window.scrollY>50));
+const obs=new IntersectionObserver(e=>{e.forEach(i=>{if(i.isIntersecting)i.target.classList.add('v')})},{threshold:.08,rootMargin:'0px 0px -30px 0px'});
+document.querySelectorAll('.fu').forEach(el=>obs.observe(el));
+document.querySelectorAll('a[href^="#"]').forEach(a=>{a.addEventListener('click',e=>{e.preventDefault();const t=document.querySelector(a.getAttribute('href'));if(t)t.scrollIntoView({behavior:'smooth',block:'start'})})});
+document.querySelectorAll('.faq-q').forEach(q=>{q.addEventListener('click',()=>{const item=q.parentElement;document.querySelectorAll('.faq-item').forEach(i=>{if(i!==item)i.classList.remove('open')});item.classList.toggle('open')})});
+</script>
+</body>
+</html>
